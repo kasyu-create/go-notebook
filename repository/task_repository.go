@@ -46,8 +46,17 @@ func (tr *taskRepository) CreateTask(task *model.Task) error {
 }
 
 func (tr *taskRepository) UpdateTask(task *model.Task, userId uint, taskId uint) error {
-	result := tr.db.Model(task).Clauses(clause.Returning{}).Where("id=? AND user_id=?", taskId, userId).Update("title", task.Title)
+	result := tr.db.Model(task).
+		Clauses(clause.Returning{Columns: []clause.Column{
+			{Name: "id"},
+			{Name: "title"},
+			{Name: "updated_at"},
+		}}).
+		Where("id=? AND user_id=?", taskId, userId).
+		Update("title", task.Title)
+
 	if result.Error != nil {
+		fmt.Printf("UpdateTask Error: %v\n", result.Error)
 		return result.Error
 	}
 	if result.RowsAffected < 1 {
@@ -59,6 +68,7 @@ func (tr *taskRepository) UpdateTask(task *model.Task, userId uint, taskId uint)
 func (tr *taskRepository) DeleteTask(userId uint, taskId uint) error {
 	result := tr.db.Where("id=? AND user_id=?", taskId, userId).Delete(&model.Task{})
 	if result.Error != nil {
+		fmt.Printf("DeleteTask Error: %v\n", result.Error)
 		return result.Error
 	}
 	if result.RowsAffected < 1 {
