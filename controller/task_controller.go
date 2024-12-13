@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"go-rest-api/model"
 	"go-rest-api/usecase"
 	"net/http"
@@ -77,12 +78,26 @@ func (tc *taskController) UpdateTask(c echo.Context) error {
 
 	task := model.Task{}
 	if err := c.Bind(&task); err != nil {
+		fmt.Printf("Error in binding task: %v\n", err)
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
+
+	// デバッグログ: 受け取ったデータを確認
+	fmt.Printf("Received Task for Update: %+v\n", task)
+
+	// UserId をセット
+	task.UserId = uint(userId.(float64))
+
+	// 更新処理
 	taskRes, err := tc.tu.UpdateTask(task, uint(userId.(float64)), uint(taskId))
 	if err != nil {
+		fmt.Printf("Error in UpdateTask usecase: %v\n", err)
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
+
+	// 更新成功のログ
+	fmt.Printf("Updated Task Response: %+v\n", taskRes)
+
 	return c.JSON(http.StatusOK, taskRes)
 }
 
