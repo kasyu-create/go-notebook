@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"fmt"
 	"go-rest-api/model"
 	"go-rest-api/repository"
 	"go-rest-api/validator"
@@ -72,19 +73,35 @@ func (tu *taskUsecase) CreateTask(task model.Task) (model.TaskResponse, error) {
 }
 
 func (tu *taskUsecase) UpdateTask(task model.Task, userId uint, taskId uint) (model.TaskResponse, error) {
-	if err := tu.tv.TaskValidate(task); err != nil {
+	// 既存データを取得
+	existingTask := model.Task{}
+	if err := tu.tr.GetTaskById(&existingTask, userId, taskId); err != nil {
 		return model.TaskResponse{}, err
 	}
-	if err := tu.tr.UpdateTask(&task, userId, taskId); err != nil {
+
+	// 必要なフィールドを更新
+	if task.Title != "" {
+		existingTask.Title = task.Title
+	}
+	if task.GenreID != nil {
+		fmt.Printf("Updating GenreID: %v\n", *task.GenreID) // デバッグログ
+		existingTask.GenreID = task.GenreID
+	}
+
+	// 更新をリポジトリに反映
+	if err := tu.tr.UpdateTask(&existingTask, userId, taskId); err != nil {
 		return model.TaskResponse{}, err
 	}
-	resTask := model.TaskResponse{
-		ID:        task.ID,
-		Title:     task.Title,
-		CreatedAt: task.CreatedAt,
-		UpdatedAt: task.UpdatedAt,
-	}
-	return resTask, nil
+
+	// 更新後のレスポンスを作成
+	return model.TaskResponse{
+		ID:        existingTask.ID,
+		Title:     existingTask.Title,
+		GenreID:   existingTask.GenreID,
+		Order:     existingTask.Order,
+		CreatedAt: existingTask.CreatedAt,
+		UpdatedAt: existingTask.UpdatedAt,
+	}, nil
 }
 
 func (tu *taskUsecase) DeleteTask(userId uint, taskId uint) error {
