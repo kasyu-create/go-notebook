@@ -31,13 +31,20 @@ func (tu *taskUsecase) GetAllTasks(userId uint) ([]model.TaskResponse, error) {
 	}
 	resTasks := []model.TaskResponse{}
 	for _, v := range tasks {
-		t := model.TaskResponse{
+		// GenreID をポインタ型に変換
+		var genreID *uint
+		if v.GenreID != nil { // GenreID が nil でない場合のみ代入
+			genreID = v.GenreID
+		}
+
+		// タスクレスポンスを作成し、リストに追加
+		resTasks = append(resTasks, model.TaskResponse{
 			ID:        v.ID,
 			Title:     v.Title,
+			GenreID:   genreID,
 			CreatedAt: v.CreatedAt,
 			UpdatedAt: v.UpdatedAt,
-		}
-		resTasks = append(resTasks, t)
+		})
 	}
 	return resTasks, nil
 }
@@ -83,7 +90,7 @@ func (tu *taskUsecase) UpdateTask(task model.Task, userId uint, taskId uint) (mo
 	if task.Title != "" {
 		existingTask.Title = task.Title
 	}
-	if task.GenreID != nil {
+	if task.GenreID != nil { // task.GenreID が nil でない場合に更新
 		fmt.Printf("Updating GenreID: %v\n", *task.GenreID) // デバッグログ
 		existingTask.GenreID = task.GenreID
 	}
