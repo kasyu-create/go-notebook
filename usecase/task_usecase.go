@@ -31,17 +31,17 @@ func (tu *taskUsecase) GetAllTasks(userId uint) ([]model.TaskResponse, error) {
 	}
 	resTasks := []model.TaskResponse{}
 	for _, v := range tasks {
-		// GenreID をポインタ型に変換
-		var genreID *uint
-		if v.GenreID != nil { // GenreID が nil でない場合のみ代入
-			genreID = v.GenreID
+		var genreName string
+		if v.GenreID != nil { // GenreIDが存在する場合のみ処理
+			genreName = v.Genre.Name // Genre名を取得
 		}
 
-		// タスクレスポンスを作成し、リストに追加
+		// TaskResponseに変換
 		resTasks = append(resTasks, model.TaskResponse{
 			ID:        v.ID,
 			Title:     v.Title,
-			GenreID:   genreID,
+			GenreID:   v.GenreID,
+			GenreName: genreName, // Genre名を追加
 			CreatedAt: v.CreatedAt,
 			UpdatedAt: v.UpdatedAt,
 		})

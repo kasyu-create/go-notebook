@@ -22,7 +22,7 @@ func main() {
 	// ログ出力先を設定
 	log.SetOutput(logFile)
 
-	// ログフォーマットを設定（例: プリフィックス）
+	// ログフォーマットを設定
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	// 初期化ログ
@@ -50,9 +50,10 @@ func main() {
 	userController := controller.NewUserController(userUsecase)
 	taskController := controller.NewTaskController(taskUsecase)
 	genreController := controller.NewGenreController(genreUsecase) // ジャンル用コントローラー
+	authController := controller.NewAuthController()               // 認証コントローラー
 
 	// ルーター
-	e := router.NewRouter(userController, taskController, genreController) // 追加
+	e := router.NewRouter(userController, taskController, genreController, authController)
 
 	// サーバー開始
 	log.Println("Starting the server on :8080")
