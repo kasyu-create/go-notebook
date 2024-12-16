@@ -14,6 +14,8 @@ import (
 type IUserUsecase interface {
 	SignUp(user model.User) (model.UserResponse, error)
 	Login(user model.User) (string, error)
+	GetUserByEmail(email string) (*model.User, error)           // 追加
+	ValidatePassword(hashedPassword, inputPassword string) bool // 追加
 }
 
 type userUsecase struct {
@@ -22,7 +24,7 @@ type userUsecase struct {
 }
 
 func NewUserUsecase(ur repository.IUserRepository, uv validator.IUserValidator) IUserUsecase {
-	return &userUsecase{ur, uv}
+	return &userUsecase{ur: ur, uv: uv} // 名前付きフィールドで初期化
 }
 
 func (uu *userUsecase) SignUp(user model.User) (model.UserResponse, error) {
@@ -65,4 +67,20 @@ func (uu *userUsecase) Login(user model.User) (string, error) {
 		return "", err
 	}
 	return tokenString, nil
+}
+
+// Emailでユーザー取得
+func (uu *userUsecase) GetUserByEmail(email string) (*model.User, error) {
+	var user model.User
+	err := uu.ur.GetUserByEmail(&user, email) // `repo` → `ur` に修正
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+// パスワード検証
+func (uu *userUsecase) ValidatePassword(hashedPassword, inputPassword string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(inputPassword))
+	return err == nil
 }
